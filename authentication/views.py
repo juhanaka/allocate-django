@@ -17,7 +17,7 @@ from datetime import datetime
 FLOW = flow_from_clientsecrets(
     settings.GOOGLE_CLIENT_SECRETS,
     scope='https://www.googleapis.com/auth/calendar.readonly',
-    redirect_uri='http://localhost:8000/authentication/oauth2callback')
+    redirect_uri='http://ec2-52-24-156-133.us-west-2.compute.amazonaws.com/authentication/oauth2callback')
 
 def signup(request):
   if request.method == 'POST':
