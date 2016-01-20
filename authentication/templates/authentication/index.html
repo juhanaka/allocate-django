@@ -1,8 +1,13 @@
 {% extends "authentication/base.html" %}
 {% block content %}
 <div class="large-6 large-centered" style="margin-top: 180px; text-align:center;">
+    {%if not authorized %}
     <h3>Authorization</h3>
     <p>Please authorize Allocate to use Google Calendar and Gmail.</p>
-    <a class="button" href="google_calendar" >Authorize</a>
+    <a class="button" href="{{auth_url}}" >Authorize</a>
+    {% else %}
+    <h3>Thank you for authorizing!</h3>
+    <a href="http://getallocate.in">Back to home page</a>
+    {% endif %}
 </div>
 {% endblock %}
