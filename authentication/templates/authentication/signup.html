@@ -5,8 +5,17 @@
 <form action="/authentication/signup/" method="post">
   {% csrf_token %}
   {{ form.username.label_tag }}{{ form.username }}
+  {% for err in form.username.errors %}
+    <p style="color:red">{{err}}</p>
+  {% endfor %}
   {{ form.password1.label_tag }}{{ form.password1 }}
+  {% for err in form.password1.errors %}
+    <p style="color:red">{{err}}</p>
+  {% endfor %}
   {{ form.password2.label_tag }}{{ form.password2 }}
+  {% for err in form.password2.errors %}
+    <p style="color:red">{{err}}</p>
+  {% endfor %}
   <button class="button" type="submit" value="Register">Register</button>
 </form>
 </div>
