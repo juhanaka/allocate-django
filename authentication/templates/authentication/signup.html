@@ -1,7 +1,7 @@
 {% extends "authentication/base.html" %}
 {% block content %}
-<div class="large-3 large-centered">
-<h2>Registration</h2>
+<div class="large-3 large-centered" style="margin-top: 120px">
+<h3>Registration</h3>
 <form action="/authentication/signup/" method="post">
   {% csrf_token %}
   {{ form.username.label_tag }}{{ form.username }}

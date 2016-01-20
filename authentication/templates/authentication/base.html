@@ -1,10 +1,13 @@
+{% load staticfiles %}
 <head>
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.1.1/foundation.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static "style.css" %}">
 </head>
-
 <body>
-    <br><br><br><br>
-    <div class="row">
+    <div class="row full-width" style="padding-top: 20px; padding-bottom: 20px">
+        <img src="{% static "allocate_logo.png" %}" style="display: block; margin: auto;">
+    </div>
+    <div class="row full-width contain-clouds" style="background-image: url('//dfsm9194vna0o.cloudfront.net/1233774-0-clouds.jpg'), url(//d2r8jqmejizzox.cloudfront.net/0dd9ca02/0eac4463/1453178171-1233774-ghost-clouds.jpg)">
         {% block content %}{% endblock %}
     </div>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.1.1/foundation.min.js"></script>

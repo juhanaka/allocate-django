@@ -1,0 +1,8 @@
+.row.full-width {
+  width: 100%;
+  max-width: 100%;
+}
+
+.contain-clouds {
+    min-height: 630px
+}
