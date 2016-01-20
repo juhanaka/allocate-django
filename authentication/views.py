@@ -37,8 +37,14 @@ def signup(request):
 
 @login_required
 def index(request):
-  return render_to_response('authentication/index.html')
-
+  storage = Storage(models.CredentialsModel, 'id', request.user, 'credential')
+  credential = storage.get()
+  if credential is None or credential.invalid == True:
+    FLOW.params['state'] = xsrfutil.generate_token(settings.SECRET_KEY,
+                                                   request.user)
+    authorize_url = FLOW.step1_get_authorize_url()
+    return render_to_response('authentication/index.html', {'auth_url': authorize_url, 'authorized': False})
+  return render_to_response('authentication/index.html', {'authorized': True})
 
 @login_required
 def google_calendar(request):
@@ -73,4 +79,4 @@ def auth_return(request):
   credential = FLOW.step2_exchange(request.GET)
   storage = Storage(models.CredentialsModel, 'id', request.user, 'credential')
   storage.put(credential)
-  return HttpResponseRedirect("google_calendar")
+  return HttpResponseRedirect("index")
