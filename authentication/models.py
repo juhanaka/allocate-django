@@ -4,9 +4,9 @@ from django.contrib.auth import models as auth_models
 from oauth2client.django_orm import FlowField, CredentialsField
 
 class FlowModel(models.Model):
-  id = models.ForeignKey(auth_models.User, primary_key=True)
+  id = models.ForeignKey(auth_models.User, primary_key=True, on_delete=models.CASCADE)
   flow = FlowField()
 
 class CredentialsModel(models.Model):
-  id = models.ForeignKey(auth_models.User, primary_key=True)
+  id = models.ForeignKey(auth_models.User, primary_key=True, on_delete=models.CASCADE)
   credential = CredentialsField()
