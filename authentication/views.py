@@ -79,4 +79,4 @@ def auth_return(request):
   credential = FLOW.step2_exchange(request.GET)
   storage = Storage(models.CredentialsModel, 'id', request.user, 'credential')
   storage.put(credential)
-  return HttpResponseRedirect("index")
+  return HttpResponseRedirect("/")
