@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from django.contrib.auth import models as auth_models
 from django.db import models
+from django.forms import ModelForm
 
 class ProjectModel(models.Model):
   user = models.ForeignKey(auth_models.User, on_delete=models.CASCADE)
@@ -16,3 +17,8 @@ class GoogleCalendarEventModel(models.Model):
   organizer_email = models.CharField(max_length=500, default='')
   start = models.DateTimeField()
   end = models.DateTimeField()
+
+class ProjectForm(ModelForm):
+  class Meta:
+    model = ProjectModel
+    fields = ['client_name', 'project_name']

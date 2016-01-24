@@ -1,7 +1,14 @@
 $(function($) {
 var app = {};
-
+app.EVENT_DATA_ID = 'events_json'
 //////////////////////////// DATA
+app.data = {};
+app.data.events = JSON.parse($('#events_json').text());
+app.data.events = _.pluck(app.data.events, 'fields');
+
+app.data.projects = JSON.parse($('#projects_json').text());
+app.data.projects = _.pluck(app.data.projects, 'fields');
+
 var dummy_data = {
     'events': [
         {'id': Math.floor(Math.random() * 1000 % 1000), 'application': 'Calendar', 'description': 'Email to jony@apple.com',
@@ -29,8 +36,8 @@ _.template.formatdate = function(date) {
 };
 
 app.templates.event_template = _.template(`
-<li id="event-<%= id %>" class="draggable-event list-group-item" draggable="true" ondragstart="app.drag(event)">
-    <%= application %>: <%= description %><br>
+<li id="event-<%= event_id %>" class="draggable-event list-group-item" draggable="true" ondragstart="app.drag(event)">
+    <%= application %>: <%= summary %><br>
     <%= _.template.formatdate(start) %> - <%= _.template.formatdate(end) %>
 </li>
 `);
@@ -72,8 +79,7 @@ app.templates.new_project = _.template(`
 ////////////////////////////////////// MODELS
 var Event = Backbone.Model.extend({
     defaults: {
-        id: 1,
-        application: 'NA',
+        application: 'Calendar',
         name: 'No description available',
     }
 });
@@ -217,16 +223,16 @@ app.drop = function drop(ev) {
 
 
 // Construct and render projects views.
-app.projects_collection = new Projects(dummy_data.projects);
+app.projects_collection = new Projects(app.data.projects);
 app.projects_view = new ProjectsView({collection: app.projects_collection});
 app.projects_view.render();
 
 // All events
-app.all_events = new Events(dummy_data.events);
+app.all_events = new Events(app.data.events);
 
 // Construct and render events views.
 app.events_views = {}
-_.each(dummy_data.projects, function(project) {
+_.each(app.data.projects, function(project) {
     var collection = app.all_events.byProject(project.id);
     var events_view = new EventsView({
         tagId: project.id,

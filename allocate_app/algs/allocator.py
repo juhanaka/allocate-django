@@ -84,3 +84,7 @@ class GoogleAllocator(object):
     events = self.get_existing_events_for_today()
     return serializers.serialize('json', events)
 
+  def get_projects_json(self):
+    projects = self.get_projects()
+    return serializers.serialize('json', projects)
+
