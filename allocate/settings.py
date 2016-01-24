@@ -84,8 +84,8 @@ WSGI_APPLICATION = 'allocate.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'allocate-django',
         'USER': 'allocate',
+        'NAME': 'allocate_django',
         'PASSWORD': DB_PASSWORD
     }
 }
