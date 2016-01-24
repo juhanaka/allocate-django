@@ -139,3 +139,22 @@ MS_TOKEN_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/token'
 
 # Google API
 GOOGLE_CLIENT_SECRETS = SECRETS_DIR + "/client_secret.json"
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/home/ubuntu/debug.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
