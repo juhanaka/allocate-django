@@ -44,7 +44,7 @@ app.templates.event_template = _.template(`
 
 app.templates.project_template = _.template(`
 <div class="panel panel-default project" id="project-<%= id %>">
-    <div class="panel-heading"><%= client %> - <%= project_name %></div>
+    <div class="panel-heading"><%= client %> - <%= project_name %> - <%= pattern %></div>
     <div class="panel-body" ondrop="app.drop(event)" ondragover="app.allowDrop(event)">
         <ul id="events-<%= id %>" class="list-group event-list">
         </ul>
@@ -69,8 +69,8 @@ app.templates.new_project = _.template(`
             <input type="text" class="form-control" id="new-project-name" placeholder="iPhone Launch">
         </div>
         <div class="form-group">
-            <label for="new-project-pattern">Project pattern</label>
-            <input type="text" class="form-control" id="new-project-pattern" placeholder="iPhone [L|l]aunch">
+            <label for="new-pattern">Pattern</label>
+            <input type="text" class="form-control" id="new-pattern" placeholder="iPhone [L|l]aunch">
         </div>
     </div>
     <div class="modal-footer">
@@ -102,7 +102,8 @@ var Project = Backbone.Model.extend({
     defaults: {
         id: 1,
         client: 'NA',
-        project_name: 'NA'
+        project_name: 'NA',
+        pattern: 'NA'
     }
 });
 
@@ -202,6 +203,7 @@ var NewProjectModal = Backbone.View.extend({
         project.id = maxId + 1;
         project.client = this.$el.find('#new-project-client').val();
         project.project_name = this.$el.find('#new-project-name').val();
+        project.pattern = this.$el.find('#new-pattern').val();
         var projectModel = new Project(project);
         this.collection.add(projectModel);
         this.$el.modal('hide');
