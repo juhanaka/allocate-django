@@ -22,11 +22,15 @@ LOGIN_REDIRECT_URL = '/authentication'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '_8#bhju^j#bgxd6i00lh)y9=*v$^oc_okqu6_j*1^g(ik##77o'
+SECRETS_DIR = '../.secret'
+with open(SECRETS_DIR + '/secret_key.txt') as f:
+  SECRET_KEY = f.read().strip()
+
+with open(SECRETS_DIR + '/db_pass.txt') as f:
+  DB_PASSWORD = f.read().strip()
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -40,8 +44,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'crispy_forms',
     'authentication'
 ]
+
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
@@ -74,14 +81,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'allocate.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/1.9/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'allocate-django',
+        'USERNAME': 'allocate',
+        'PASSWORD': DB_PASSWORD
     }
 }
 
@@ -124,10 +129,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = "/home/ubuntu/allocate-django/static"
-
-
-
-SECRETS_DIR = '../.secret'
 
 # Outlook API
 MS_APP_ID = '20abe469-8d38-4057-9ced-f31a8f15bf06'

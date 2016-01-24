@@ -1,29 +1,17 @@
-{% extends "authentication/base.html" %}
-{% block content %}
-<div class="large-3 large-centered" style="margin-top: 120px">
+{% extends "authentication/base_clouds.html" %}
+{% block cloud_content %}
+{% load crispy_forms_tags %}
+<div class="col-lg-4 col-lg-offset-4" style="margin-top: 120px">
 <h3>Sign in</h3>
 <br>
-{% if form.errors %}
-<p>Your username and password didn't match. Please try again.</p>
-{% endif %}
-
-{% if next %}
-    {% if user.is_authenticated %}
-    <p>Your account doesn't have access to this page. To proceed,
-    please login with an account that has access.</p>
-    {% else %}
-    <p>Please login to see this page.</p>
-    {% endif %}
-{% endif %}
-
 <form method="post" action="{% url 'login' %}">
-{% csrf_token %}
-{{ form.username.label_tag }}{{ form.username }}
-{{ form.password.label_tag }}{{ form.password }}
-
-<button type="submit" value="login" class="button">Sign in</button>
-<a href="{% url 'signup' %}" class="button secondary" style="float: right;">Sign up</a>
-<input type="hidden" name="next" value="{{ next }}" />
+<div class="form-group">
+    {% csrf_token %}
+    {{form|crispy}}
+    <button type="submit" value="login" class="btn btn-primary">Sign in</button>
+    <a href="{% url 'signup' %}" class="btn btn-link">Sign up</a>
+    <input type="hidden" name="next" value="{{ next }}" />
+</div>
 </form>
 
 </div>

@@ -10,3 +10,12 @@ class FlowModel(models.Model):
 class CredentialsModel(models.Model):
   id = models.ForeignKey(auth_models.User, primary_key=True, on_delete=models.CASCADE)
   credential = CredentialsField()
+
+class ProjectModel(models.Model):
+  user = models.ForeignKey(auth_models.User, on_delete=models.CASCADE)
+  client_name = models.CharField(max_length=200)
+  project_name = models.CharField(max_length=200)
+
+class EventModel(models.Model):
+  user = models.ForeignKey(auth_models.User, on_delete=models.CASCADE)
+  project = models.ForeignKey(ProjectModel)

@@ -1,13 +1,30 @@
 {% extends "authentication/base.html" %}
 {% block content %}
-<div class="large-6 large-centered" style="margin-top: 180px; text-align:center;">
-    {%if not authorized %}
+<!-- {%if not authorized %} -->
+<!-- <div class="large-6 large-centered" style="margin-top: 180px; text-align:center;">
     <h3>Authorization</h3>
     <p>Please authorize Allocate to use Google Calendar and Gmail.</p>
     <a class="button" href="{{auth_url}}" >Authorize</a>
-    {% else %}
-    <h3>Thank you for authorizing!</h3>
-    <a href="http://getallocate.in">Back to home page</a>
-    {% endif %}
+</div -->>
+<!-- {% else %} -->
+<div class="col-lg-6">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3>Unallocated events</h3>
+        </div>
+        <div class="panel-body" ondrop="app.drop(event)" ondragover="app.allowDrop(event)">
+            <ul id="events-unallocated" class="list-group event-list">
+            </ul>
+        </div>
+    </div>
 </div>
+<div class="col-lg-6">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3>Projects<button id="add-new-project" class="btn btn-success pull-right">Add</button></h3>
+        </div>
+        <div id="project-list" class="panel-body"></div>
+    </div>
+</div>
+<!-- {% endif %} -->
 {% endblock %}
