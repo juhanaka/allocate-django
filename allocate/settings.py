@@ -85,7 +85,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'allocate-django',
-        'USERNAME': 'allocate',
+        'USER': 'allocate',
         'PASSWORD': DB_PASSWORD
     }
 }
