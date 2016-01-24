@@ -32,7 +32,7 @@ with open(SECRETS_DIR + '/db_pass.txt') as f:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', 'app.getallocate.in']
 
 
 # Application definition
@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'crispy_forms',
-    'authentication'
+    'authentication',
+    'allocate_app'
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'

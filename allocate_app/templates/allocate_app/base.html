@@ -7,8 +7,12 @@
     <div class="row full-width" style="padding-top: 20px; padding-bottom: 20px">
         <img src="{% static "allocate_logo.png" %}" style="display: block; margin: auto;">
     </div>
-    <div class="row full-width contain-clouds" style="background-image: url('//dfsm9194vna0o.cloudfront.net/1233774-0-clouds.jpg'), url(//d2r8jqmejizzox.cloudfront.net/0dd9ca02/0eac4463/1453178171-1233774-ghost-clouds.jpg)">
+    <div class="row">
         {% block content %}{% endblock %}
     </div>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
     <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.2.3/backbone-min.js"></script>
+    <script type="text/javascript" src="{% static "app.js" %}"></script>
 </body>
