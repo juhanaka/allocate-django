@@ -1,12 +1,12 @@
 {% extends "authentication/base.html" %}
 {% block content %}
-<!-- {%if not authorized %} -->
-<!-- <div class="large-6 large-centered" style="margin-top: 180px; text-align:center;">
+{%if not authorized %}
+<div class="large-6 large-centered" style="margin-top: 180px; text-align:center;">
     <h3>Authorization</h3>
     <p>Please authorize Allocate to use Google Calendar and Gmail.</p>
     <a class="button" href="{{auth_url}}" >Authorize</a>
-</div -->>
-<!-- {% else %} -->
+</div>
+{% else %}
 <div class="col-lg-6">
     <div class="panel panel-primary">
         <div class="panel-heading">
@@ -26,5 +26,5 @@
         <div id="project-list" class="panel-body"></div>
     </div>
 </div>
-<!-- {% endif %} -->
+{% endif %}
 {% endblock %}
