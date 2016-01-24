@@ -12,6 +12,20 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 
 import os
 
+PRODUCTION = False
+
+DOMAIN_PRODUCTION = 'http://app.getallocate.in'
+DOMAIN_LOCAL = 'http://localhost:8000'
+
+LOCAL_LOGGING_FILE = '/tmp/django_debug.log'
+PRODUCTION_LOGGING_FILE = '/home/ubuntu/debug.log'
+
+# Change this in production
+DOMAIN = DOMAIN_PRODUCTION if PRODUCTION else DOMAIN_LOCAL
+LOGGING_FILE = PRODUCTION_LOGGING_FILE if PRODUCTION else LOCAL_LOGGING_FILE
+
+DEBUG = not PRODUCTION
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -28,9 +42,6 @@ with open(SECRETS_DIR + '/secret_key.txt') as f:
 
 with open(SECRETS_DIR + '/db_pass.txt') as f:
   DB_PASSWORD = f.read().strip()
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', 'app.getallocate.in']
 
@@ -147,7 +158,7 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': '/home/ubuntu/debug.log',
+            'filename': LOGGING_FILE,
         },
     },
     'loggers': {

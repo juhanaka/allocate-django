@@ -17,7 +17,7 @@ from datetime import datetime
 FLOW = flow_from_clientsecrets(
     settings.GOOGLE_CLIENT_SECRETS,
     scope='https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/gmail.readonly',
-    redirect_uri='http://app.getallocate.in/authentication/oauth2callback')
+    redirect_uri=settings.DOMAIN + '/authentication/oauth2callback')
 
 def signup(request):
   if request.method == 'POST':
@@ -45,31 +45,6 @@ def home(request):
     authorize_url = FLOW.step1_get_authorize_url()
     return render_to_response('authentication/home.html', {'auth_url': authorize_url})
   return HttpResponseRedirect(reverse('app_home'))
-
-# @login_required
-# def google_calendar(request):
-#   storage = Storage(models.CredentialsModel, 'id', request.user, 'credential')
-#   credential = storage.get()
-#   if credential is None or credential.invalid == True:
-#     FLOW.params['state'] = xsrfutil.generate_token(settings.SECRET_KEY,
-#                                                    request.user)
-#     authorize_url = FLOW.step1_get_authorize_url()
-#     return HttpResponseRedirect(authorize_url)
-#   else:
-#     http = httplib2.Http()
-#     http = credential.authorize(http)
-#     service = build("calendar", "v3", http=http)
-#     all_entries = []
-#     page_token = None
-#     while True:
-#       calendar_list = service.events().list(calendarId='primary', timeMin=datetime.utcnow().isoformat() + 'Z').execute()
-#       for calendar_list_entry in calendar_list['items']:
-#         all_entries.append({'time': calendar_list_entry['start'],
-#                             'description': calendar_list_entry['summary']})
-#       page_token = calendar_list.get('nextPageToken')
-#       if not page_token:
-#         break
-#     return render_to_response('authentication/calendar.html', {'entries':all_entries})
 
 @login_required
 def auth_return(request):
