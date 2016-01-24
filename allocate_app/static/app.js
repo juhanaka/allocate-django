@@ -68,6 +68,10 @@ app.templates.new_project = _.template(`
             <label for="new-project-name">Project name</label>
             <input type="text" class="form-control" id="new-project-name" placeholder="iPhone Launch">
         </div>
+        <div class="form-group">
+            <label for="new-project-pattern">Project pattern</label>
+            <input type="text" class="form-control" id="new-project-pattern" placeholder="iPhone [L|l]aunch">
+        </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-primary" id="create">Create</button>
