@@ -10,7 +10,7 @@ class ProjectModel(models.Model):
   pattern = models.CharField(max_length=200)
 
 class GoogleCalendarEventModel(models.Model):
-  event_id = models.CharField(max_length=500, unique=True)
+  event_id = models.CharField(max_length=500)
   user = models.ForeignKey(auth_models.User, on_delete=models.CASCADE)
   project = models.ForeignKey(ProjectModel, null=True, default=None)
   calendar_id = models.CharField(max_length=100)
@@ -18,8 +18,6 @@ class GoogleCalendarEventModel(models.Model):
   organizer_email = models.CharField(max_length=500, default='')
   start = models.DateTimeField()
   end = models.DateTimeField()
-
-class ProjectForm(ModelForm):
   class Meta:
-    model = ProjectModel
-    fields = ['client_name', 'project_name']
+    unique_together = ('user', 'event_id')
+
