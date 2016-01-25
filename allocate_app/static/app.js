@@ -1,7 +1,14 @@
 $(function($) {
 var app = {};
-
+app.EVENT_DATA_ID = 'events_json'
 //////////////////////////// DATA
+app.data = {};
+app.data.events = JSON.parse($('#events_json').text());
+app.data.events = _.pluck(app.data.events, 'fields');
+
+app.data.projects = JSON.parse($('#projects_json').text());
+app.data.projects = _.pluck(app.data.projects, 'fields');
+
 var dummy_data = {
     'events': [
         {'id': Math.floor(Math.random() * 1000 % 1000), 'application': 'Calendar', 'description': 'Email to jony@apple.com',
@@ -29,15 +36,15 @@ _.template.formatdate = function(date) {
 };
 
 app.templates.event_template = _.template(`
-<li id="event-<%= id %>" class="draggable-event list-group-item" draggable="true" ondragstart="app.drag(event)">
-    <%= application %>: <%= description %><br>
+<li id="event-<%= event_id %>" class="draggable-event list-group-item" draggable="true" ondragstart="app.drag(event)">
+    <%= application %>: <%= summary %><br>
     <%= _.template.formatdate(start) %> - <%= _.template.formatdate(end) %>
 </li>
 `);
 
 app.templates.project_template = _.template(`
 <div class="panel panel-default project" id="project-<%= id %>">
-    <div class="panel-heading"><%= client %> - <%= project_name %></div>
+    <div class="panel-heading"><%= client %> - <%= project_name %> - <%= pattern %></div>
     <div class="panel-body" ondrop="app.drop(event)" ondragover="app.allowDrop(event)">
         <ul id="events-<%= id %>" class="list-group event-list">
         </ul>
@@ -61,6 +68,10 @@ app.templates.new_project = _.template(`
             <label for="new-project-name">Project name</label>
             <input type="text" class="form-control" id="new-project-name" placeholder="iPhone Launch">
         </div>
+        <div class="form-group">
+            <label for="new-pattern">Pattern</label>
+            <input type="text" class="form-control" id="new-pattern" placeholder="iPhone [L|l]aunch">
+        </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-primary" id="create">Create</button>
@@ -72,8 +83,7 @@ app.templates.new_project = _.template(`
 ////////////////////////////////////// MODELS
 var Event = Backbone.Model.extend({
     defaults: {
-        id: 1,
-        application: 'NA',
+        application: 'Calendar',
         name: 'No description available',
     }
 });
@@ -92,7 +102,8 @@ var Project = Backbone.Model.extend({
     defaults: {
         id: 1,
         client: 'NA',
-        project_name: 'NA'
+        project_name: 'NA',
+        pattern: 'NA'
     }
 });
 
@@ -192,6 +203,7 @@ var NewProjectModal = Backbone.View.extend({
         project.id = maxId + 1;
         project.client = this.$el.find('#new-project-client').val();
         project.project_name = this.$el.find('#new-project-name').val();
+        project.pattern = this.$el.find('#new-pattern').val();
         var projectModel = new Project(project);
         this.collection.add(projectModel);
         this.$el.modal('hide');
@@ -217,16 +229,16 @@ app.drop = function drop(ev) {
 
 
 // Construct and render projects views.
-app.projects_collection = new Projects(dummy_data.projects);
+app.projects_collection = new Projects(app.data.projects);
 app.projects_view = new ProjectsView({collection: app.projects_collection});
 app.projects_view.render();
 
 // All events
-app.all_events = new Events(dummy_data.events);
+app.all_events = new Events(app.data.events);
 
 // Construct and render events views.
 app.events_views = {}
-_.each(dummy_data.projects, function(project) {
+_.each(app.data.projects, function(project) {
     var collection = app.all_events.byProject(project.id);
     var events_view = new EventsView({
         tagId: project.id,
