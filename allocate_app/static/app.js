@@ -4,25 +4,7 @@ app.EVENT_DATA_ID = 'events_json'
 //////////////////////////// DATA
 app.data = {};
 app.data.events = JSON.parse($('#events_json').text());
-app.data.events = _.pluck(app.data.events, 'fields');
-
 app.data.projects = JSON.parse($('#projects_json').text());
-app.data.projects = _.pluck(app.data.projects, 'fields');
-
-var dummy_data = {
-    'events': [
-        {'id': Math.floor(Math.random() * 1000 % 1000), 'application': 'Calendar', 'description': 'Email to jony@apple.com',
-         'start': new Date(2016, 1, 11, 9, 4, 20), 'end': new Date(2016, 1, 11, 9, 50, 55), 'project_id': null},
-        {'id': Math.floor(Math.random() * 1000 % 1000), 'application': 'Calendar', 'description': 'APPL_INC_MARKETING_V1',
-         'start': new Date(2016, 1, 11, 10, 15, 20), 'end': new Date(2016, 1, 11, 11, 25, 55), 'project_id': null},
-        {'id': Math.floor(Math.random() * 1000 % 1000), 'application': 'Calendar', 'description': 'CocaCola_Prospective_Partners',
-         'start': new Date(2016, 1, 11, 13, 40, 43), 'end': new Date(2016, 1, 11, 15, 04, 01), 'project_id': 1},
-    ],
-    'projects': [
-        {'id': 1, 'client': 'Apple Inc.', 'project_name': 'Marketing Project'},
-        {'id': 2, 'client': 'Coca Cola Co.', 'project_name': 'Sales sourcing'},
-    ]
-};
 
 /////////////////////////// TEMPLATES
 app.templates = {};
@@ -36,17 +18,17 @@ _.template.formatdate = function(date) {
 };
 
 app.templates.event_template = _.template(`
-<li id="event-<%= event_id %>" class="draggable-event list-group-item" draggable="true" ondragstart="app.drag(event)">
-    <%= application %>: <%= summary %><br>
-    <%= _.template.formatdate(start) %> - <%= _.template.formatdate(end) %>
+<li id="event-<%= pk %>" class="draggable-event list-group-item" draggable="true">
+    <%= fields.summary %><br>
+    <%= _.template.formatdate(fields.start) %> - <%= _.template.formatdate(fields.end) %>
 </li>
 `);
 
 app.templates.project_template = _.template(`
-<div class="panel panel-default project" id="project-<%= id %>">
-    <div class="panel-heading"><%= client %> - <%= project_name %></div>
-    <div class="panel-body" ondrop="app.drop(event)" ondragover="app.allowDrop(event)">
-        <ul id="events-<%= id %>" class="list-group event-list">
+<div class="panel panel-default project" id="project-<%= pk %>">
+    <div class="panel-heading"><%= fields.client_name %> - <%= fields.project_name %></div>
+    <div class="panel-body" ondragover="app.allowDrop(event)">
+        <ul id="events-<%= pk %>" class="list-group event-list">
         </ul>
     </div>
 </div>
@@ -78,42 +60,40 @@ app.templates.new_project = _.template(`
 
 ////////////////////////////////////// MODELS
 var Event = Backbone.Model.extend({
-    defaults: {
-        application: 'Calendar',
-        name: 'No description available',
-    }
+    url: '/event',
 });
 
 var Events = Backbone.Collection.extend({
     model: Event,
     byProject: function(project_id) {
         filtered = this.filter(function(ev) {
-            return ev.get('project_id') == project_id;
+            return ev.get('fields').project == project_id;
         });
         return new Events(filtered);
     }
 });
 
 var Project = Backbone.Model.extend({
-    defaults: {
-        id: 1,
-        client: 'NA',
-        project_name: 'NA'
-    }
+    url: '/project',
 });
 
 var Projects = Backbone.Collection.extend({
-    model: Project
+    model: Project,
 });
 
 /////////////////////////////////////// VIEWS
 
 var EventView = Backbone.View.extend({
     template: app.templates.event_template,
+    events: {'dragstart': 'drag'},
     render: function() {
         this.$el.html(this.template(this.model.attributes));
         return this;
     },
+    drag: function(ev) {
+        ev.originalEvent.dataTransfer.setData("elemId", ev.target.id);
+        ev.originalEvent.dataTransfer.setData("eventId", this.model.cid);
+    }
 });
 
 var EventsView = Backbone.View.extend({
@@ -139,10 +119,22 @@ var EventsView = Backbone.View.extend({
 
 var ProjectView = Backbone.View.extend({
     template: app.templates.project_template,
+    events: {
+        'drop': 'addEvent'
+    },
     render: function() {
         this.$el.html(this.template(this.model.attributes));
         return this;
     },
+    addEvent: function(ev) {
+        ev.preventDefault();
+        var elemId = ev.originalEvent.dataTransfer.getData("elemId");
+        var target_ul = $(ev.target).children("ul");
+        var eventId = ev.originalEvent.dataTransfer.getData("eventId");
+        var eventModel = app.all_events.get(eventId);
+        target_ul.append(document.getElementById(elemId));
+        eventModel.get("fields").project = this.model.get('pk');
+    }
 });
 
 var ProjectsView = Backbone.View.extend({
@@ -189,18 +181,11 @@ var NewProjectModal = Backbone.View.extend({
     },
     createProject: function() {
         var project = {};
-        var maxId = -1;
-        _.each(this.collection.models, function(proj) {
-            if (proj.id > maxId) {
-                maxId = proj.id;
-            }
-        }, this);
-        project.id = maxId + 1;
-        project.client = this.$el.find('#new-project-client').val();
-        project.project_name = this.$el.find('#new-project-name').val();
+        project.fields = {};
+        project.fields.client_name = this.$el.find('#new-project-client').val();
+        project.fields.project_name = this.$el.find('#new-project-name').val();
         var projectModel = new Project(project);
-        this.collection.add(projectModel);
-        this.$el.modal('hide');
+        projectModel.save(null, {success: function() {location.reload();}});
     }
 });
 
@@ -209,18 +194,6 @@ var NewProjectModal = Backbone.View.extend({
 app.allowDrop = function allowDrop(ev) {
     ev.preventDefault();
 }
-
-app.drag = function drag(ev) {
-    ev.dataTransfer.setData("text", ev.target.id);
-}
-
-app.drop = function drop(ev) {
-    ev.preventDefault();
-    var data = ev.dataTransfer.getData("text");
-    var target_ul = $(ev.target).children("ul");
-    target_ul.append(document.getElementById(data));
-}
-
 
 // Construct and render projects views.
 app.projects_collection = new Projects(app.data.projects);
@@ -233,13 +206,13 @@ app.all_events = new Events(app.data.events);
 // Construct and render events views.
 app.events_views = {}
 _.each(app.data.projects, function(project) {
-    var collection = app.all_events.byProject(project.id);
+    var collection = app.all_events.byProject(project.pk);
     var events_view = new EventsView({
-        tagId: project.id,
+        tagId: project.pk,
         collection: collection
     });
     events_view.render();
-    app.events_views[project.id] = events_view;
+    app.events_views[project.pk] = events_view;
 });
 
 var collection = app.all_events.byProject(null);
@@ -254,7 +227,37 @@ app.events_views["unallocated"] = events_view;
 $('#add-new-project').click(function() {
     var modalView = new NewProjectModal({collection: app.projects_collection});
     modalView.show();
-})
+});
+
+$('#savebutton').click(function() {
+    _.each(app.all_events.models, function(ev) {
+        ev.save();
+    });
+});
+
+
+///// CONFIGURE AJAX
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+var csrftoken = getCookie('csrftoken');
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+    }
+});
 
 this.app = app;
 });

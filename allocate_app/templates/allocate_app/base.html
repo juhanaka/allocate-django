@@ -4,10 +4,10 @@
     <link rel="stylesheet" type="text/css" href="{% static "style.css" %}">
 </head>
 <body>
-    <div class="row full-width" style="padding-top: 20px; padding-bottom: 20px">
+    <div class="row" style="padding-top: 20px; padding-bottom: 20px">
         <img src="{% static "allocate_logo.png" %}" style="display: block; margin: auto;">
     </div>
-    <div class="row">
+    <div class="container">
         {% block content %}{% endblock %}
     </div>
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.0.min.js"></script>

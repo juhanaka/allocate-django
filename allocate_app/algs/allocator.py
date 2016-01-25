@@ -46,7 +46,8 @@ class GoogleAllocator(object):
     page_token = None
     while True:
       calendar_list = service.events().list(
-        calendarId='primary', timeMin=self.today_midnight().isoformat() + '-07:00',
+        calendarId='primary',
+        timeMin=self.today_midnight().isoformat() + '-07:00',
         timeMax=datetime.now().isoformat() + '-07:00',
         pageToken=page_token
       ).execute()
@@ -54,6 +55,7 @@ class GoogleAllocator(object):
       page_token = calendar_list.get('nextPageToken')
       if not page_token:
         break
+    print all_entries
     return all_entries
 
   def get_projects(self):
