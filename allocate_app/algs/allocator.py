@@ -105,6 +105,7 @@ class GoogleAllocator(object):
 
   def get_todays_events_json(self):
     self.update_todays_events()
+    self.allocate_todays_unallocated_events()
     events = self.get_existing_events_for_today()
     return serializers.serialize('json', events)
 
