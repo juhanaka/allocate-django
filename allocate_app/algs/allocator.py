@@ -63,6 +63,10 @@ class GoogleAllocator(object):
     user_projects = models.ProjectModel.objects.filter(user=self.user)
     return user_projects
 
+  def get_projects_json(self):
+    projects = self.get_projects()
+    return serializers.serialize('json', projects)
+
   def get_existing_events_for_today(self):
     user_events = models.GoogleCalendarEventModel.objects.filter(
         user=self.user)
@@ -86,19 +90,19 @@ class GoogleAllocator(object):
             event_id=event['id'], user=self.user, calendar_id='primary',
             summary=event['summary'], start=start, end=end)
         event_model.save()
-        
+
   def allocate_and_save_event(self, event, projects):
     for project in projects:
       if re.search(project.pattern, event.summary):
           event.project = project
           event.save()
-    
+
   def allocate_todays_unallocated_events(self):
     events = self.get_unallocated_events_for_today()
     projects = self.get_projects()
     for event in events:
         self.allocate_and_save_event(event, projects)
-      
+
   def get_todays_events_json(self):
     self.update_todays_events()
     events = self.get_existing_events_for_today()
