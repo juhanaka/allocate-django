@@ -3,9 +3,9 @@ import re
 from authentication import models as authentication_models
 from oauth2client.django_orm import Storage
 from apiclient.discovery import build
-from datetime import datetime
 from django.core import serializers
 from allocate_app import models
+from allocate_app.dateutils import parse_google_datetime, now_in_local, today_midnight
 
 class AllocatorError(Exception):
     pass
@@ -17,18 +17,7 @@ class GoogleAllocator(object):
   def __init__(self, user):
     self.user = user
     self.credential = self.get_credential()
-
-  @staticmethod
-  def today_midnight():
-    today = datetime.today()
-    today = today.replace(hour=0, minute=0, second=0,
-                          microsecond=0)
-    return today
-
-  @staticmethod
-  def parse_google_datetime(datetime_str):
-    return datetime.strptime(datetime_str[:18], '%Y-%m-%dT%H:%M:%S')
-
+          
   def get_credential(self):
     storage = Storage(authentication_models.CredentialsModel,
                       'id', self.user, 'credential')
@@ -48,8 +37,8 @@ class GoogleAllocator(object):
     while True:
       calendar_list = service.events().list(
         calendarId='primary',
-        timeMin=self.today_midnight().isoformat() + '-07:00',
-        timeMax=datetime.now().isoformat() + '-07:00',
+        timeMin=today_midnight().isoformat(),
+        timeMax=now_in_local().isoformat(),
         pageToken=page_token
       ).execute()
       all_entries += calendar_list['items']
@@ -84,8 +73,8 @@ class GoogleAllocator(object):
         if existing_events.filter(event_id=event['id']).exists():
           continue
 
-        start = self.parse_google_datetime(event['start']['dateTime'])
-        end = self.parse_google_datetime(event['end']['dateTime'])
+        start = parse_google_datetime(event['start']['dateTime'])
+        end = parse_google_datetime(event['end']['dateTime'])
         event_model = models.GoogleCalendarEventModel(
             event_id=event['id'], user=self.user, calendar_id='primary',
             summary=event['summary'], start=start, end=end)
