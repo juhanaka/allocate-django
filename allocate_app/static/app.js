@@ -26,7 +26,10 @@ app.templates.event_template = _.template(`
 
 app.templates.project_template = _.template(`
 <div class="panel panel-default project" id="project-<%= pk %>">
-    <div class="panel-heading"><%= fields.client_name %> - <%= fields.project_name %></div>
+    <div class="panel-heading">
+        <%= fields.client_name %> - <%= fields.project_name %>
+        <span class="pull-right duration"></span>
+    </div>
     <div class="panel-body" ondragover="app.allowDrop(event)">
         <ul id="events-<%= pk %>" class="list-group event-list">
         </ul>
@@ -62,9 +65,21 @@ app.templates.new_project = _.template(`
 </div><!-- /.modal-dialog -->
 `)
 
+function ms_to_hhmm(ms) {
+    var duration = {};
+    duration.hours = Math.floor(ms / (60*60*1000));
+    duration.minutes = Math.floor((ms - duration.hours*60*60*1000)/ (60*1000));
+    return duration;
+}
+
 ////////////////////////////////////// MODELS
 var Event = Backbone.Model.extend({
     url: '/event',
+    getDuration: function() {
+        var end = new Date(this.get('fields').end);
+        var start = new Date(this.get('fields').start);
+        return end - start;
+    }
 });
 
 var Events = Backbone.Collection.extend({
@@ -111,10 +126,20 @@ var EventsView = Backbone.View.extend({
 
     render: function() {
         this.collection = app.all_events.byProject(this.project_pk);
+        var total_duration_ms = _.reduce(this.collection.models, function(s, el) {
+            return s + el.getDuration();
+        }, 0);
+        var total_duration_obj = ms_to_hhmm(total_duration_ms);
         this.$el.empty();
         _.each(this.collection.models, function(item) {
             this.renderEvent(item);
         }, this);
+        var project_element = this.$el.closest(".project");
+        if (project_element.length) {
+            project_element.find(".duration").text(
+                "hours: " + total_duration_obj.hours + " minutes: " + total_duration_obj.minutes);
+        }
+        return this;
     },
 
     renderEvent: function(item) {
