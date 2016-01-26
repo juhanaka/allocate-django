@@ -7,12 +7,12 @@ class ProjectModel(models.Model):
   user = models.ForeignKey(auth_models.User, on_delete=models.CASCADE)
   client_name = models.CharField(max_length=200)
   project_name = models.CharField(max_length=200)
-  #pattern = models.CharField(max_length=200)
+  pattern = models.CharField(max_length=200, default='^$')
 
 class GoogleCalendarEventModel(models.Model):
   event_id = models.CharField(max_length=500)
   user = models.ForeignKey(auth_models.User, on_delete=models.CASCADE)
-  project = models.ForeignKey(ProjectModel, null=True, default=None)
+  project = models.ForeignKey(ProjectModel, null=True, blank=True, default=None)
   calendar_id = models.CharField(max_length=100)
   summary = models.CharField(max_length=500)
   organizer_email = models.CharField(max_length=500, default='')

@@ -1,6 +1,7 @@
 import httplib2
 import re
 from authentication import models as authentication_models
+from oauth2client.client import HttpAccessTokenRefreshError
 from oauth2client.django_orm import Storage
 from apiclient.discovery import build
 from django.core import serializers
@@ -45,6 +46,8 @@ class GoogleAllocator(object):
       page_token = calendar_list.get('nextPageToken')
       if not page_token:
         break
+    except HttpAccessTokenRefreshError:
+	raise CredentialsError()
     print all_entries
     return all_entries
 

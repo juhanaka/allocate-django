@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 
 import os
 
-PRODUCTION = False
+PRODUCTION = True
 
 DOMAIN_PRODUCTION = 'http://app.getallocate.in'
 DOMAIN_LOCAL = 'http://localhost:8000'
@@ -96,8 +96,8 @@ WSGI_APPLICATION = 'allocate.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'USER': 'allocate',
         'NAME': 'allocate_django',
-        'USERNAME': 'allocate',
         'PASSWORD': DB_PASSWORD
     }
 }
