@@ -30,24 +30,25 @@ class GoogleAllocator(object):
   def get_calendar_events_for_today(self):
     if self.credential is None or self.credential.invalid:
         raise CredentialsError("Credentials not found or invalid.")
-    http = httplib2.Http()
-    http = self.credential.authorize(http)
-    service = build("calendar", "v3", http=http)
-    all_entries = []
-    page_token = None
-    while True:
-      calendar_list = service.events().list(
-        calendarId='primary',
-        timeMin=today_midnight().isoformat(),
-        timeMax=now_in_local().isoformat(),
-        pageToken=page_token
-      ).execute()
-      all_entries += calendar_list['items']
-      page_token = calendar_list.get('nextPageToken')
-      if not page_token:
-        break
+    try:
+      http = httplib2.Http()
+      http = self.credential.authorize(http)
+      service = build("calendar", "v3", http=http)
+      all_entries = []
+      page_token = None
+      while True:
+        calendar_list = service.events().list(
+          calendarId='primary',
+          timeMin=today_midnight().isoformat(),
+          timeMax=now_in_local().isoformat(),
+          pageToken=page_token
+        ).execute()
+        all_entries += calendar_list['items']
+        page_token = calendar_list.get('nextPageToken')
+        if not page_token:
+          break
     except HttpAccessTokenRefreshError:
-	raise CredentialsError()
+	  raise CredentialsError()
     print all_entries
     return all_entries
 
