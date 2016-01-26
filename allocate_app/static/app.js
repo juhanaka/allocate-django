@@ -103,11 +103,15 @@ var EventView = Backbone.View.extend({
 var EventsView = Backbone.View.extend({
 
     initialize: function(options) {
-        this.collection = options.collection;
-        this.$el = $("ul#events-" + options.tagId + ".event-list");
+        this.project_pk = options.project_pk;
+        this.tagId = this.project_pk == null ? "unallocated" : this.project_pk;
+        this.$el = $("ul#events-" + this.tagId + ".event-list");
+        this.render();
     },
 
     render: function() {
+        this.collection = app.all_events.byProject(this.project_pk);
+        this.$el.empty();
         _.each(this.collection.models, function(item) {
             this.renderEvent(item);
         }, this);
@@ -133,11 +137,25 @@ var ProjectView = Backbone.View.extend({
     addEvent: function(ev) {
         ev.preventDefault();
         var elemId = ev.originalEvent.dataTransfer.getData("elemId");
-        var target_ul = $(ev.target).children("ul");
         var eventId = ev.originalEvent.dataTransfer.getData("eventId");
         var eventModel = app.all_events.get(eventId);
-        target_ul.append(document.getElementById(elemId));
         eventModel.get("fields").project = this.model.get('pk');
+        _.each(app.events_views, function(view) {view.render();})
+    }
+});
+
+var UnallocatedContainerView = Backbone.View.extend({
+    el: "#unallocated-container",
+    events: {
+        'drop': 'addEvent'
+    },
+    addEvent: function(ev) {
+        ev.preventDefault();
+        var elemId = ev.originalEvent.dataTransfer.getData("elemId");
+        var eventId = ev.originalEvent.dataTransfer.getData("eventId");
+        var eventModel = app.all_events.get(eventId);
+        eventModel.get("fields").project = null;
+        _.each(app.events_views, function(view) {view.render();})
     }
 });
 
@@ -204,25 +222,23 @@ app.projects_collection = new Projects(app.data.projects);
 app.projects_view = new ProjectsView({collection: app.projects_collection});
 app.projects_view.render();
 
+// Unallocated container
+app.unallocated_container = new UnallocatedContainerView();
+
 // All events
 app.all_events = new Events(app.data.events);
 
 // Construct and render events views.
 app.events_views = {}
-_.each(app.data.projects, function(project) {
-    var collection = app.all_events.byProject(project.pk);
+_.each(app.projects_collection.models, function(project) {
     var events_view = new EventsView({
-        tagId: project.pk,
-        collection: collection
+        project_pk: project.get('pk'),
     });
-    events_view.render();
-    app.events_views[project.pk] = events_view;
+    app.events_views[project.get('pk')] = events_view;
 });
 
-var collection = app.all_events.byProject(null);
 var events_view = new EventsView({
-    tagId: "unallocated",
-    collection: collection
+    project_pk: null
 });
 
 events_view.render();
