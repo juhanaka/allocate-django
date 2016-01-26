@@ -49,7 +49,6 @@ class GoogleAllocator(object):
           break
     except HttpAccessTokenRefreshError:
 	  raise CredentialsError()
-    print all_entries
     return all_entries
 
   def get_projects(self):
@@ -85,10 +84,14 @@ class GoogleAllocator(object):
         event_model.save()
 
   def allocate_and_save_event(self, event, projects):
+    print "trying to allocate event", event.summary
     for project in projects:
+      print "proj client: %s, proj pattern: %s" %(project.client_name, project.pattern)
       if re.search(project.pattern, event.summary):
-          event.project = project
-          event.save()
+        print "matched: %s to %s" %(event.summary, project.client_name)
+        event.project = project
+        event.save()
+        return
 
   def allocate_todays_unallocated_events(self):
     events = self.get_unallocated_events_for_today()
