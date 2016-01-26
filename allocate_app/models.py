@@ -7,7 +7,8 @@ class ProjectModel(models.Model):
   user = models.ForeignKey(auth_models.User, on_delete=models.CASCADE)
   client_name = models.CharField(max_length=200)
   project_name = models.CharField(max_length=200)
-  pattern = models.CharField(max_length=200, default='')
+  # http://stackoverflow.com/questions/2930182/regex-to-not-match-any-characters
+  pattern = models.CharField(max_length=200, default='(?!.*)') # don't match anything
 
 class GoogleCalendarEventModel(models.Model):
   event_id = models.CharField(max_length=500)

@@ -4,9 +4,9 @@ from authentication import models as authentication_models
 from oauth2client.client import HttpAccessTokenRefreshError
 from oauth2client.django_orm import Storage
 from apiclient.discovery import build
-from datetime import datetime
 from django.core import serializers
 from allocate_app import models
+from allocate_app.dateutils import parse_google_datetime, now_in_local, today_midnight
 
 class AllocatorError(Exception):
     pass
@@ -18,18 +18,7 @@ class GoogleAllocator(object):
   def __init__(self, user):
     self.user = user
     self.credential = self.get_credential()
-
-  @staticmethod
-  def today_midnight():
-    today = datetime.today()
-    today = today.replace(hour=0, minute=0, second=0,
-                          microsecond=0)
-    return today
-
-  @staticmethod
-  def parse_google_datetime(datetime_str):
-    return datetime.strptime(datetime_str[:18], '%Y-%m-%dT%H:%M:%S')
-
+          
   def get_credential(self):
     storage = Storage(authentication_models.CredentialsModel,
                       'id', self.user, 'credential')
@@ -42,25 +31,24 @@ class GoogleAllocator(object):
     if self.credential is None or self.credential.invalid:
         raise CredentialsError("Credentials not found or invalid.")
     try:
-    	http = httplib2.Http()
-    	http = self.credential.authorize(http)
-    	service = build("calendar", "v3", http=http)
-    	all_entries = []
-    	page_token = None
-    	while True:
-    	  calendar_list = service.events().list(
-    	    calendarId='primary',
-    	    timeMin=self.today_midnight().isoformat() + '-07:00',
-    	    timeMax=datetime.now().isoformat() + '-07:00',
-    	    pageToken=page_token
-    	  ).execute()
-    	  all_entries += calendar_list['items']
-    	  page_token = calendar_list.get('nextPageToken')
-    	  if not page_token:
-    	    break
+      http = httplib2.Http()
+      http = self.credential.authorize(http)
+      service = build("calendar", "v3", http=http)
+      all_entries = []
+      page_token = None
+      while True:
+        calendar_list = service.events().list(
+          calendarId='primary',
+          timeMin=today_midnight().isoformat(),
+          timeMax=now_in_local().isoformat(),
+          pageToken=page_token
+        ).execute()
+        all_entries += calendar_list['items']
+        page_token = calendar_list.get('nextPageToken')
+        if not page_token:
+          break
     except HttpAccessTokenRefreshError:
-	raise CredentialsError()
-    print all_entries
+	  raise CredentialsError()
     return all_entries
 
   def get_projects(self):
@@ -88,18 +76,22 @@ class GoogleAllocator(object):
         if existing_events.filter(event_id=event['id']).exists():
           continue
 
-        start = self.parse_google_datetime(event['start']['dateTime'])
-        end = self.parse_google_datetime(event['end']['dateTime'])
+        start = parse_google_datetime(event['start']['dateTime'])
+        end = parse_google_datetime(event['end']['dateTime'])
         event_model = models.GoogleCalendarEventModel(
             event_id=event['id'], user=self.user, calendar_id='primary',
             summary=event['summary'], start=start, end=end)
         event_model.save()
 
   def allocate_and_save_event(self, event, projects):
+    print "trying to allocate event", event.summary
     for project in projects:
+      print "proj client: %s, proj pattern: %s" %(project.client_name, project.pattern)
       if re.search(project.pattern, event.summary):
-          event.project = project
-          event.save()
+        print "matched: %s to %s" %(event.summary, project.client_name)
+        event.project = project
+        event.save()
+        return
 
   def allocate_todays_unallocated_events(self):
     events = self.get_unallocated_events_for_today()
