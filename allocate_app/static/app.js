@@ -206,6 +206,7 @@ var NewProjectModal = Backbone.View.extend({
         project.fields = {};
         project.fields.client_name = this.$el.find('#new-project-client').val();
         project.fields.project_name = this.$el.find('#new-project-name').val();
+        project.fields.pattern = this.$el.find('#new-pattern').val();
         var projectModel = new Project(project);
         projectModel.save(null, {success: function() {location.reload();}});
     }
