@@ -18,6 +18,7 @@ FLOW = flow_from_clientsecrets(
     settings.GOOGLE_CLIENT_SECRETS,
     scope='https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/gmail.readonly',
     redirect_uri=settings.DOMAIN + '/authentication/oauth2callback')
+FLOW.params['access_type'] = 'offline'
 
 def signup(request):
   if request.method == 'POST':

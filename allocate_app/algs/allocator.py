@@ -1,6 +1,7 @@
 import httplib2
 import re
 from authentication import models as authentication_models
+from oauth2client.client import HttpAccessTokenRefreshError
 from oauth2client.django_orm import Storage
 from apiclient.discovery import build
 from datetime import datetime
@@ -40,22 +41,25 @@ class GoogleAllocator(object):
   def get_calendar_events_for_today(self):
     if self.credential is None or self.credential.invalid:
         raise CredentialsError("Credentials not found or invalid.")
-    http = httplib2.Http()
-    http = self.credential.authorize(http)
-    service = build("calendar", "v3", http=http)
-    all_entries = []
-    page_token = None
-    while True:
-      calendar_list = service.events().list(
-        calendarId='primary',
-        timeMin=self.today_midnight().isoformat() + '-07:00',
-        timeMax=datetime.now().isoformat() + '-07:00',
-        pageToken=page_token
-      ).execute()
-      all_entries += calendar_list['items']
-      page_token = calendar_list.get('nextPageToken')
-      if not page_token:
-        break
+    try:
+    	http = httplib2.Http()
+    	http = self.credential.authorize(http)
+    	service = build("calendar", "v3", http=http)
+    	all_entries = []
+    	page_token = None
+    	while True:
+    	  calendar_list = service.events().list(
+    	    calendarId='primary',
+    	    timeMin=self.today_midnight().isoformat() + '-07:00',
+    	    timeMax=datetime.now().isoformat() + '-07:00',
+    	    pageToken=page_token
+    	  ).execute()
+    	  all_entries += calendar_list['items']
+    	  page_token = calendar_list.get('nextPageToken')
+    	  if not page_token:
+    	    break
+    except HttpAccessTokenRefreshError:
+	raise CredentialsError()
     print all_entries
     return all_entries
 

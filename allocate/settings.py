@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 
 import os
 
-PRODUCTION = False
+PRODUCTION = True
 
 DOMAIN_PRODUCTION = 'http://app.getallocate.in'
 DOMAIN_LOCAL = 'http://localhost:8000'
