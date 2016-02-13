@@ -10,3 +10,7 @@ class FlowModel(models.Model):
 class CredentialsModel(models.Model):
   id = models.ForeignKey(auth_models.User, primary_key=True, on_delete=models.CASCADE)
   credential = CredentialsField()
+
+class RescuetimeTokenModel(models.Model):
+  id = models.ForeignKey(auth_models.User, primary_key=True, on_delete=models.CASCADE)
+  token = models.CharField(max_length=1000)

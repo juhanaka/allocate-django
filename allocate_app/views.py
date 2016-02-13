@@ -16,10 +16,11 @@ def home(request):
     try:
       allocator_obj = allocator.GoogleAllocator(request.user)
       todays_events_json = allocator_obj.get_todays_events_json()
-      projects_json = allocator_obj.get_projects_json()
-      return render_to_response('allocate_app/home.html',
-                                {'todays_events': todays_events_json,
-                                 'projects': projects_json})
+      #projects_json = allocator_obj.get_projects_json()
+      return render_to_response('allocate_app/thankyou.html')
+      #return render_to_response('allocate_app/home.html',
+      #                          {'todays_events': todays_events_json,
+      #                           'projects': projects_json})
     except allocator.CredentialsError:
       return HttpResponseRedirect(reverse('authentication_home'))
 
