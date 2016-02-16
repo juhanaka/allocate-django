@@ -225,5 +225,5 @@ class GoogleEmailEvent(EmailEvent):
     objects = [cls.create_object_from_entry(entry) for entry in entries]
     return objects
 
-class RescuetimeEvent(object):
+class RescuetimeEvent(Event):
   pass

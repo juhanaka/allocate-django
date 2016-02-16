@@ -21,3 +21,9 @@ class CredentialsModel(models.Model):
 class RescuetimeTokenModel(models.Model):
   id = models.ForeignKey(auth_models.User, primary_key=True, on_delete=models.CASCADE)
   token = models.CharField(max_length=1000)
+
+class OutlookCredentialsModel(models.Model):
+  id = models.ForeignKey(auth_models.User, primary_key=True, on_delete=models.CASCADE)
+  server = models.CharField(max_length=1000)
+  email_address = models.CharField(max_length=1000)
+  password = models.CharField(max_length=1000)
