@@ -56,9 +56,12 @@ class Event(object):
   def get_all(cls, user_id, date=None):
     """Get all events for user and date.
 
+    Note: if date is not passed, the method will return
+    events for the current date.
+
     Args:
       user_id: Integer corresponding to user id in django
-      date: datetime.date object
+      date: datetime.datetime object
 
     Returns:
       A list of Event subclass objects.
