@@ -20,3 +20,6 @@ def parse_google_datetime(datetime_str):
 
 def parse_email_datetime(datetime_str):
   return to_local(parser.parse(datetime_str))
+
+def as_utc(dtm):
+  return dtm.replace(tzinfo=UTC_TZ)

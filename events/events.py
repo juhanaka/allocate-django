@@ -53,7 +53,7 @@ class Event(object):
     self.duration = kwargs.pop('duration', None)
 
   @classmethod
-  def get_all(cls, user_id, date):
+  def get_all(cls, user_id, date=None):
     """Get all events for user and date.
 
     Args:
@@ -106,8 +106,15 @@ class GoogleCalendarEvent(CalendarEvent):
     self.source = 'google'
 
   @classmethod
-  def get_all(cls, user_id, date):
+  def get_all(cls, user_id, date=None):
     """See base class."""
+    if date is None:
+      time_min = dateutils.today_midnight()
+    else:
+      time_min = dateutils.as_utc(
+          date.replace(hour=0, minute=0, second=0, microsecond=0)
+      )
+    time_max = time_min + datetime.timedelta(days=1)
     credential = get_google_credential(user_id)
     http = httplib2.Http()
     http = credential.authorize(http)
@@ -118,8 +125,8 @@ class GoogleCalendarEvent(CalendarEvent):
     while True:
       calendar_list = service.events().list(
           calendarId='primary',
-          timeMin=dateutils.today_midnight().isoformat(),
-          timeMax=dateutils.now_in_local().isoformat(),
+          timeMin=time_min.isoformat(),
+          timeMax=time_max.isoformat(),
           pageToken=page_token
       ).execute()
       entries.extend(calendar_list['items'])
@@ -176,7 +183,7 @@ class GoogleEmailEvent(EmailEvent):
                title=subject, body=body, timestamp=date)
 
   @classmethod
-  def get_all(cls, user_id, date):
+  def get_all(cls, user_id, date=None):
     """See base class."""
     credential = get_google_credential(user_id)
     http = httplib2.Http()
@@ -185,11 +192,17 @@ class GoogleEmailEvent(EmailEvent):
     entries = []
     page_token = None
 
-    start=dateutils.today_midnight()
-    end = start + datetime.timedelta(days=1)
+    if date is None:
+      time_min = dateutils.today_midnight()
+    else:
+      time_min = dateutils.as_utc(
+          date.replace(hour=0, minute=0, second=0, microsecond=0)
+      )
+    time_max = time_min + datetime.timedelta(days=1)
+
     query_string = 'after:{0} before:{1}'.format(
-        start.strftime('%Y/%m/%d'),
-        end.strftime('%Y/%m/%d')
+        time_min.strftime('%Y/%m/%d'),
+        time_max.strftime('%Y/%m/%d')
     )
 
     while True:
