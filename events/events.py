@@ -1,3 +1,10 @@
+# Initialize django
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'allocate.settings'
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
+
+
 import base64
 import httplib2
 import json
@@ -5,6 +12,7 @@ import datetime
 
 from apiclient import discovery
 from authentication import models as authentication_models
+
 from utils import dateutils
 from oauth2client import django_orm
 
