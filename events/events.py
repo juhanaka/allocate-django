@@ -2,6 +2,11 @@ import base64
 import httplib2
 import json
 import datetime
+import rfc3339
+import time
+
+import email
+import imaplib
 
 from apiclient import discovery
 from authentication import models as authentication_models
@@ -11,6 +16,27 @@ from oauth2client import django_orm
 class CredentialsException(Exception):
   pass
 
+class AuthenticationExceptoin(Exception):
+  pass
+
+def get_todays_date_query_string():
+    nowdt = dateutils.today_midnight()
+    nowtuple = nowdt.timetuple()
+    nowtimestamp = time.mktime(nowtuple)
+    dt_str = email.utils.formatdate(nowtimestamp)
+    # e.g. '(ON "17-Feb-2016")' 
+    return '(ON "%s")' % (dt_str)
+
+def get_outlook_credential(user_id):
+  """Fetch the outlook credential from db based on user_id."""
+  user = authentication_models.get_user_by_id(user_id)
+  if user is None:
+    raise ValueError('No user found with id: {0}'.format(user_id))
+
+  credential = authentication_models.OutlookCredential(id=user_id)
+  if credential is None or credential.invalid:
+      raise CredentialsException('Credentials not found or invalid.')
+  return credential
 
 def get_google_credential(user_id):
   """Fetch the google oauth credential from db based on user_id.
@@ -225,5 +251,45 @@ class GoogleEmailEvent(EmailEvent):
     objects = [cls.create_object_from_entry(entry) for entry in entries]
     return objects
 
-class RescuetimeEvent(Event):
-  pass
+class OutlookEmailEvent(EmailEvent):
+  def __init__(self, **kwargs):
+    super(OutlookEmailEvent, self).__init__(**kwargs)
+    self.source = 'outlook'
+
+  @classmethod
+  def create_object_from_entry(cls, entry):
+    """Creates an object from a email.message object returned from imaplib."""
+    recipients =  entry.get("To") + entry.get("Cc")
+    sender = entry.get("From")
+    subject = entry.get("Subject")
+    body = None
+    date = entry.get("Date")
+    return cls(id=mail.get("Message-ID"), sender=sender, recipients=recipients,
+               title=subject, body=body, timestamp=date)
+
+  @classmethod
+  def get_all(cls, user_id, date=None):
+    """See base class."""
+
+    service = service_models.Outlook.get_service(user_id)
+
+    # TODO: implement
+    credential = get_outlook_credential(user_id)
+    service = imaplib.IMAP4_SSL(credential.server)
+    status, data = service.login(credential.email_address, credential.password)
+    
+    # throw exception error if status is not "OK"
+    if status != "OK":
+      raise AuthenticationException('Could not authenticate outlook server.')
+
+    # TODO: date to rfc2822 format
+    query_string = get_todays_date_query_string()
+
+    status, nums = service.search(None, query_string)
+    entries = []
+    for num in nums[0].split():
+      status, data = service.fetch(num, "(RFC822)")
+      entries.append(email.message_from_string(data[0][1]))
+
+    objects = [cls.create_object_from_entry(entry) for entry in entries]
+    return objects
