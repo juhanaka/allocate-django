@@ -27,12 +27,7 @@ class AuthenticationExceptoin(Exception):
   pass
 
 def get_todays_date_query_string():
-    nowdt = dateutils.today_midnight()
-    nowtuple = nowdt.timetuple()
-    nowtimestamp = time.mktime(nowtuple)
-    dt_str = email.utils.formatdate(nowtimestamp)
-    # e.g. '(ON "17-Feb-2016")'
-    return '(ON "%s")' % (dt_str)
+    return '(ON "%s")' % ( rfc3339.now().strftime("%d-%b-%Y"))
 
 def get_outlook_credential(user_id):
   """Fetch the outlook credential from db based on user_id."""
