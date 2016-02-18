@@ -9,7 +9,6 @@ import base64
 import httplib2
 import json
 import datetime
-import rfc3339
 import time
 
 import email
@@ -18,7 +17,7 @@ import imaplib
 from apiclient import discovery
 from authentication import models as authentication_models
 
-from utils import dateutils
+from utils import dateutils, rfc3339
 from oauth2client import django_orm
 
 class CredentialsException(Exception):
@@ -32,7 +31,7 @@ def get_todays_date_query_string():
     nowtuple = nowdt.timetuple()
     nowtimestamp = time.mktime(nowtuple)
     dt_str = email.utils.formatdate(nowtimestamp)
-    # e.g. '(ON "17-Feb-2016")' 
+    # e.g. '(ON "17-Feb-2016")'
     return '(ON "%s")' % (dt_str)
 
 def get_outlook_credential(user_id):
@@ -41,8 +40,10 @@ def get_outlook_credential(user_id):
   if user is None:
     raise ValueError('No user found with id: {0}'.format(user_id))
 
-  credential = authentication_models.OutlookCredential(id=user_id)
-  if credential is None or credential.invalid:
+  credential = authentication_models.OutlookCredentialsModel.objects.get(
+      id=user
+  )
+  if credential is None:
       raise CredentialsException('Credentials not found or invalid.')
   return credential
 
@@ -285,7 +286,7 @@ class OutlookEmailEvent(EmailEvent):
     credential = get_outlook_credential(user_id)
     service = imaplib.IMAP4_SSL(credential.server)
     status, data = service.login(credential.email_address, credential.password)
-    
+
     # throw exception error if status is not "OK"
     if status != "OK":
       raise AuthenticationException('Could not authenticate outlook server.')
