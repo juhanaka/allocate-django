@@ -97,6 +97,9 @@ class Event(object):
     self.timestamp = kwargs.pop('timestamp', None)
     self.duration = kwargs.pop('duration', None)
 
+  def __repr__(self):
+    return "title: %s\ntimestamp: %s\nduration: %s" %(self.title, self.timestamp, self.duration)
+
   @classmethod
   def get_all(cls, user_id, date=None):
     """Get all events for user and date.
