@@ -29,6 +29,19 @@ class AuthenticationExceptoin(Exception):
 def date_to_query_string(dt):
     return '(ON "%s")' % ( dt.strftime("%d-%b-%Y"))
 
+def get_rescuetime_credential(user_id):
+  """Fetch the rescuetime credential from db based on user_id."""
+  user = authentication_models.get_user_by_id(user_id)
+  if user is None:
+    raise ValueError('No user found with id: {0}'.format(user_id))
+
+  credential = authentication_models.RescuetimeTokenModel.objects.get(
+      id=user
+  )
+  if credential is None:
+      raise CredentialsException('Credentials not found or invalid.')
+  return credential
+
 def get_outlook_credential(user_id):
   """Fetch the outlook credential from db based on user_id."""
   user = authentication_models.get_user_by_id(user_id)
@@ -135,6 +148,57 @@ class EmailEvent(Event):
     self.body = kwargs.pop('body', None)
     self.type = 'email'
 
+class RescueTimeEvent(Event):
+  def __init__(self, **kwargs):
+    super(RescueTimeEvent, self).__init__(**kwargs)
+    self.detail = kwargs.pop("detail", None)
+    self.interval = kwargs.pop("interval", None)
+    self.source = "rescuetime"
+    self.type = "activity"
+
+  @classmethod
+  def get_all(cls, user_id, date=None):
+    """See base class."""
+    if date is None:
+      dt = dateutils.today_midnight()
+    else:
+      dt = dateutils.as_utc(
+          date.replace(hour=0, minute=0, second=0, microsecond=0)
+      )
+
+    credential = get_rescuetime_credential(user_id)
+
+    base_url = "https://www.rescuetime.com/anapi/data?key=%s" %(credential.token,)
+    fields = "&perspective=interval" 
+    fields += "&resolution_time=minute"
+    fields += "&restrict_begin=" + dt.strftime("%Y-%m-%d")
+    fields += "&restrict_end=" + dt.strftime("%Y-%m-%d")
+    fields += "&restrict_kind=activity"
+    fields += "&restrict_kind=document"
+    fields += "&format=json"
+
+    request_url = base_url + fields
+    api_response = urllib2.urlopen(urllib2.Request(request_url))
+    d = json.loads(api_response.read())
+
+    assert (d['row_headers'] == [u'Date', u'Time Spent (seconds)', 
+                                u'Number of People', u'Activity', 
+                                u'Document', u'Category', u'Productivity'])
+    entries = d['rows']
+    objects = [cls.create_object_from_entry(entry) for entry in entries]
+    return objects
+
+  @classmethod
+  def create_object_from_entry(cls, entry):
+    """Creates an object from a list of data return from rescuetime api."""
+    timestamp = entry[0]
+    duration = entry[1]
+    title = entry[3]
+    detail = entry[4]
+    interval = "5min" 
+    return cls(id=str(uuid.uuid4()), title=title,
+               timestamp=timestamp, duration=duration, 
+               detail=detail, interval=interval)
 
 class GoogleCalendarEvent(CalendarEvent):
   def __init__(self, **kwargs):
@@ -187,7 +251,6 @@ class GoogleCalendarEvent(CalendarEvent):
                timestamp=start, duration=end-start, creator=creator,
                members=members, notes=entry.get('description'))
 
-
 class GoogleEmailEvent(EmailEvent):
   def __init__(self, **kwargs):
     super(GoogleEmailEvent, self).__init__(**kwargs)
@@ -205,7 +268,8 @@ class GoogleEmailEvent(EmailEvent):
     for header in entry['payload']['headers']:
       if header['name'] == 'To':
         to.append(header['value'])
-      elif header['name'] == 'Cc':
+      elif h
+eader['name'] == 'Cc':
         cc.append(header['value'])
       elif header['name'] == 'From':
         sender = header['value']
@@ -274,7 +338,7 @@ class OutlookEmailEvent(EmailEvent):
     cc = [entry.get("Cc")]
     sender = entry.get("From")
     subject = entry.get("Subject")
-    body = None
+    body = None # TODO: strip body from get_payload()
     date = entry.get("Date")
     return cls(id=entry.get("Message-ID"), sender=sender, to=to, cc=cc,
                title=subject, body=body, timestamp=date)
