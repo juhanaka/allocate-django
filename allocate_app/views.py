@@ -1,4 +1,6 @@
 from django.shortcuts import render, render_to_response
+from django.template import Context
+from django.template.loader import get_template
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, HttpResponse
 from oauth2client.django_orm import Storage
@@ -13,16 +15,15 @@ from django.core import serializers
 @login_required
 def home(request):
   if request.method == 'GET':
-    try:
-      allocator_obj = allocator.GoogleAllocator(request.user)
-      todays_events_json = allocator_obj.get_todays_events_json()
-      #projects_json = allocator_obj.get_projects_json()
-      return render_to_response('allocate_app/thankyou.html')
-      #return render_to_response('allocate_app/home.html',
-      #                          {'todays_events': todays_events_json,
-      #                           'projects': projects_json})
-    except allocator.CredentialsError:
-      return HttpResponseRedirect(reverse('authentication_home'))
+    companies = request.user.manager_of.all()
+    if companies:
+      return render_to_response('allocate_app/manager.html',
+                                {'user': request.user, 'companies': companies})
+    companies = request.user.employee_of.all()
+    if companies:
+      return render_to_response('allocate_app/employee.html',
+                                {'user': request.user, 'companies': companies})
+    return render_to_response('allocate_app/thankyou.html')
 
 @login_required
 def event_handler(request):
