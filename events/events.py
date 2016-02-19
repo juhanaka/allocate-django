@@ -120,15 +120,18 @@ class EmailEvent(Event):
   """Base class for email based events.
 
   Attributes:
-    recipients: List of email addresses (including cc).
-    sender: Sender email address.
+    to: List of email addresses 
+    cc: List of email addresses
+    sender: Sender email address ("From" field)
     body: string.
     type: 'email'
   """
   def __init__(self, **kwargs):
     super(EmailEvent, self).__init__(**kwargs)
-    self.recipients = kwargs.pop('recipients', None)
+    self.to = kwargs.pop('to', None)
     self.sender = kwargs.pop('sender', None)
+    self.cc = kwargs.pop('cc', None)
+    self.bcc = kwargs.pop('bcc', None)
     self.body = kwargs.pop('body', None)
     self.type = 'email'
 
@@ -193,14 +196,17 @@ class GoogleEmailEvent(EmailEvent):
   @classmethod
   def create_object_from_entry(cls, entry):
     """Creates an object from a dictionary returned from client api."""
-    recipients = []
+    to = []
+    cc = []
     sender = None
     subject = None
     body = None
     date = None
     for header in entry['payload']['headers']:
-      if header['name'] == 'To' or header['name'] == 'Cc':
-        recipients.append(header['value'])
+      if header['name'] == 'To':
+        to.append(header['value'])
+      elif header['name'] == 'Cc':
+        cc.append(header['value'])
       elif header['name'] == 'From':
         sender = header['value']
       elif header['name'] == 'Subject':
@@ -212,7 +218,7 @@ class GoogleEmailEvent(EmailEvent):
         body = base64.b64decode(entry['payload']['body']['data'])
       except TypeError:
         body = entry['payload']['body']['data']
-    return cls(id=entry['id'], sender=sender, recipients=recipients,
+    return cls(id=entry['id'], sender=sender, to=to, cc=cc,
                title=subject, body=body, timestamp=date)
 
   @classmethod
@@ -263,13 +269,14 @@ class OutlookEmailEvent(EmailEvent):
   @classmethod
   def create_object_from_entry(cls, entry):
     """Creates an object from a email.message object returned from imaplib."""
-    recipients =  [entry.get("To")]
-    recipients.append(entry.get("Cc"))
+    # TODO: implement regex to pull email addresses
+    to =  [entry.get("To")]
+    cc = [entry.get("Cc")]
     sender = entry.get("From")
     subject = entry.get("Subject")
     body = None
     date = entry.get("Date")
-    return cls(id=entry.get("Message-ID"), sender=sender, recipients=recipients,
+    return cls(id=entry.get("Message-ID"), sender=sender, to=to, cc=cc,
                title=subject, body=body, timestamp=date)
 
   @classmethod
