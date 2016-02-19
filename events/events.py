@@ -26,8 +26,8 @@ class CredentialsException(Exception):
 class AuthenticationExceptoin(Exception):
   pass
 
-def get_todays_date_query_string():
-    return '(ON "%s")' % ( rfc3339.now().strftime("%d-%b-%Y"))
+def date_to_query_string(dt):
+    return '(ON "%s")' % ( dt.strftime("%d-%b-%Y"))
 
 def get_outlook_credential(user_id):
   """Fetch the outlook credential from db based on user_id."""
@@ -263,31 +263,37 @@ class OutlookEmailEvent(EmailEvent):
   @classmethod
   def create_object_from_entry(cls, entry):
     """Creates an object from a email.message object returned from imaplib."""
-    recipients =  entry.get("To") + entry.get("Cc")
+    recipients =  [entry.get("To")]
+    recipients.append(entry.get("Cc"))
     sender = entry.get("From")
     subject = entry.get("Subject")
     body = None
     date = entry.get("Date")
-    return cls(id=mail.get("Message-ID"), sender=sender, recipients=recipients,
+    return cls(id=entry.get("Message-ID"), sender=sender, recipients=recipients,
                title=subject, body=body, timestamp=date)
 
   @classmethod
   def get_all(cls, user_id, date=None):
     """See base class."""
 
-    service = service_models.Outlook.get_service(user_id)
-
     # TODO: implement
     credential = get_outlook_credential(user_id)
     service = imaplib.IMAP4_SSL(credential.server)
     status, data = service.login(credential.email_address, credential.password)
 
-    # throw exception error if status is not "OK"
     if status != "OK":
       raise AuthenticationException('Could not authenticate outlook server.')
 
+    status, data = service.select("Inbox", readonly=True)
+
+    if status != "OK":
+      raise AuthenticationException('Could not connect to Inbox.')
+
     # TODO: date to rfc2822 format
-    query_string = get_todays_date_query_string()
+    if date is not None:
+      query_string = date_to_query_string(date)
+    else:
+      query_string = date_to_query_string(rfc3339.now())
 
     status, nums = service.search(None, query_string)
     entries = []
