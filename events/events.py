@@ -10,6 +10,8 @@ import httplib2
 import json
 import datetime
 import time
+import urllib2
+import uuid
 
 import email
 import imaplib
@@ -268,8 +270,7 @@ class GoogleEmailEvent(EmailEvent):
     for header in entry['payload']['headers']:
       if header['name'] == 'To':
         to.append(header['value'])
-      elif h
-eader['name'] == 'Cc':
+      elif header['name'] == 'Cc':
         cc.append(header['value'])
       elif header['name'] == 'From':
         sender = header['value']
