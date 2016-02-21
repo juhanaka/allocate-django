@@ -12,6 +12,7 @@ import datetime
 import time
 import urllib2
 import uuid
+import pyexchange
 
 import email
 import imaplib
@@ -138,7 +139,7 @@ class EmailEvent(Event):
   """Base class for email based events.
 
   Attributes:
-    to: List of email addresses 
+    to: List of email addresses
     cc: List of email addresses
     sender: Sender email address ("From" field)
     body: string.
@@ -174,7 +175,7 @@ class RescueTimeEvent(Event):
     credential = get_rescuetime_credential(user_id)
 
     base_url = "https://www.rescuetime.com/anapi/data?key=%s" %(credential.token,)
-    fields = "&perspective=interval" 
+    fields = "&perspective=interval"
     fields += "&resolution_time=minute"
     fields += "&restrict_begin=" + dt.strftime("%Y-%m-%d")
     fields += "&restrict_end=" + dt.strftime("%Y-%m-%d")
@@ -186,8 +187,8 @@ class RescueTimeEvent(Event):
     api_response = urllib2.urlopen(urllib2.Request(request_url))
     d = json.loads(api_response.read())
 
-    assert (d['row_headers'] == [u'Date', u'Time Spent (seconds)', 
-                                u'Number of People', u'Activity', 
+    assert (d['row_headers'] == [u'Date', u'Time Spent (seconds)',
+                                u'Number of People', u'Activity',
                                 u'Document', u'Category', u'Productivity'])
     entries = d['rows']
     objects = [cls.create_object_from_entry(entry) for entry in entries]
@@ -200,9 +201,9 @@ class RescueTimeEvent(Event):
     duration = entry[1]
     title = entry[3]
     detail = entry[4]
-    interval = "5min" 
+    interval = "5min"
     return cls(id=str(uuid.uuid4()), title=title,
-               timestamp=timestamp, duration=duration, 
+               timestamp=timestamp, duration=duration,
                detail=detail, interval=interval)
 
 class GoogleCalendarEvent(CalendarEvent):
@@ -378,3 +379,13 @@ class OutlookEmailEvent(EmailEvent):
 
     objects = [cls.create_object_from_entry(entry) for entry in entries]
     return objects
+
+class OutlookCalendarEvent(CalendarEvent):
+  def __init__(self, **kwargs):
+    super(OutlookCalendarEvent, self).__init__(**kwargs)
+    self.source = 'outlook'
+
+  @classmethod
+  def get_all(cls, user_id, date=None):
+    """See base class."""
+    import pdb;pdb.set_trace()
