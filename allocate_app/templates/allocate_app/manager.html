@@ -1,0 +1,9 @@
+{% extends "allocate_app/base.html" %}
+{% block content %}
+<div class="row">
+    <h1 class="text-center">Hello {{user.username}}, manager of: </h1>
+    {% for company in companies %}
+      {{company.name}}
+    {% endfor %}
+</div>
+{% endblock %}

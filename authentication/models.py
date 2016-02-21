@@ -10,6 +10,11 @@ def get_user_by_id(user_id):
     user = None
   return user
 
+class CompanyModel(models.Model):
+  name = models.CharField(max_length=200, unique=True)
+  employees = models.ManyToManyField(auth_models.User, related_name="employee_of")
+  managers = models.ManyToManyField(auth_models.User, related_name="manager_of")
+
 class FlowModel(models.Model):
   id = models.ForeignKey(auth_models.User, primary_key=True, on_delete=models.CASCADE)
   flow = FlowField()
