@@ -4,7 +4,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'allocate.settings'
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 
-
+import pandas as pd
 import base64
 import httplib2
 import json
@@ -197,7 +197,7 @@ class RescueTimeEvent(Event):
   @classmethod
   def create_object_from_entry(cls, entry):
     """Creates an object from a list of data return from rescuetime api."""
-    timestamp = entry[0]
+    timestamp = pd.to_datetime(entry[0])
     duration = entry[1]
     title = entry[3]
     detail = entry[4]
@@ -344,7 +344,7 @@ class OutlookEmailEvent(EmailEvent):
     sender = entry.get("From")
     subject = entry.get("Subject")
     body = None # TODO: strip body from get_payload()
-    date = entry.get("Date")
+    date = pd.to_datetime(entry.get("Date"))
     return cls(id=entry.get("Message-ID"), sender=sender, to=to, cc=cc,
                title=subject, body=body, timestamp=date)
 
